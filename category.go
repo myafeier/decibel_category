@@ -22,12 +22,12 @@ type ICategory interface {
 
 var stdCategory ICategory
 
-func Init(name string, engine *xorm.Engine) ICategory {
+func Init(name string, session *xorm.Session) ICategory {
 	switch name {
 
 	default:
 		stdCategory = &DefaultCategory{
-			engine: engine,
+			session: session,
 		}
 		stdCategory.Init()
 	}
