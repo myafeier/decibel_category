@@ -22,42 +22,39 @@ type ICategory interface {
 
 var stdCategory ICategory
 
-func Init(name string, session *xorm.Session) ICategory {
+func Init(name string, engine *xorm.Engine) ICategory {
 	switch name {
 
 	default:
 		stdCategory = &DefaultCategory{
-			session: session,
+			engine: engine,
 		}
 		stdCategory.Init()
 	}
 	return stdCategory
 }
 
-
-func Add(category *Category) (id int64, err error){
+func Add(category *Category) (id int64, err error) {
 	return stdCategory.Add(category)
 }
-func Delete(id int64) (err error){
+func Delete(id int64) (err error) {
 	return stdCategory.Delete(id)
 }
-func Update(id int64, category *Category) (err error){
-	return stdCategory.Update(id,category)
+func Update(id int64, category *Category) (err error) {
+	return stdCategory.Update(id, category)
 }
-func GetChild(categoryType CateType, id int64) (result []*Category, err error){
-	return stdCategory.GetChild(categoryType,id)
+func GetChild(categoryType CateType, id int64) (result []*Category, err error) {
+	return stdCategory.GetChild(categoryType, id)
 }
-
-
-
 
 type Category struct {
-	Id        int64       `json:"id"`
-	CateType  CateType    `json:"cate_type" xorm:"tinyint(2) default 0 index"`
-	State     State       `json:"state" xorm:"tinyint(2) default 1 index"`
-	ListOrder int         `json:"list_order" xorm:"default 10000 index"`  //排序，越小越靠前，默认10000
-	ParentId  int64       `json:"parent_id" xorm:"default 0 index"`
-	Name      string      `json:"name" xorm:"varchar(200) default ''"`
-	Icon      string      `json:"icon" xorm:"varchar(500) default ''"`
-	Child     []*Category `json:"child" xorm:"-"`
+	Id          int64       `json:"id"`
+	CateOwnerId int64       `json:"-" xorm:"default 0 index"` //
+	CateType    CateType    `json:"-" xorm:"tinyint(2) default 0 index"`
+	State       State       `json:"state" xorm:"tinyint(2) default 1 index"`
+	ListOrder   int         `json:"list_order" xorm:"default 10000 index"` //排序，越小越靠前，默认10000
+	ParentId    int64       `json:"parent_id" xorm:"default 0 index"`
+	Name        string      `json:"name" xorm:"varchar(200) default ''"`
+	Icon        string      `json:"icon" xorm:"varchar(500) default ''"`
+	Child       []*Category `json:"child" xorm:"-"`
 }
