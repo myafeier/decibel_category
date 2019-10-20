@@ -30,14 +30,15 @@ func (self *DefaultCategory)Update(id int64,category *Category)(err error){
 	_,err=self.session.ID(id).AllCols().Update(category)
 	return
 }
-func (self *DefaultCategory)Get(id int64)(result *Category,err error){
-	has,err:=self.session.ID(id).Get(result)
+func (self *DefaultCategory)Get(category *Category)(result *Category,err error){
+	has,err:=self.session.Get(category)
 	if err != nil {
 		return
 	}
 	if !has {
 		err=fmt.Errorf("invalid id")
 	}
+	result=category
 	return
 }
 
