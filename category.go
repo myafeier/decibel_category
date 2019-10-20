@@ -17,7 +17,7 @@ type ICategory interface {
 	Add(category *Category) (id int64, err error)
 	Delete(id int64) (err error)
 	Update(id int64, category *Category) (err error)
-	Get(category *Category)(result *Category,err error)
+	Get(category *Category)(has bool,err error)
 	GetChild(categoryType CateType, id int64) (result []*Category, err error)
 }
 

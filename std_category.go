@@ -1,7 +1,6 @@
 package decibel_category
 
 import (
-	"fmt"
 	"github.com/go-xorm/xorm"
 )
 
@@ -30,15 +29,11 @@ func (self *DefaultCategory)Update(id int64,category *Category)(err error){
 	_,err=self.session.ID(id).AllCols().Update(category)
 	return
 }
-func (self *DefaultCategory)Get(category *Category)(result *Category,err error){
-	has,err:=self.session.Get(category)
+func (self *DefaultCategory)Get(category *Category)(has bool,err error){
+	has,err=self.session.Get(category)
 	if err != nil {
 		return
 	}
-	if !has {
-		err=fmt.Errorf("invalid id")
-	}
-	result=category
 	return
 }
 
