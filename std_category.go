@@ -37,10 +37,10 @@ func (self *DefaultCategory)Get(category *Category)(has bool,err error){
 	return
 }
 
-func (self *DefaultCategory)GetChild(categoryType CateType,id int64)(result []*Category,err error){
-	session:=self.session.Where("cate_type=?",categoryType).And("state=?",StateOk).OrderBy("list_order")
-	if id>0{
-		session.And("parent_id=?",id)
+func (self *DefaultCategory)GetChild(categoryType CateType,mid,pid int64)(result []*Category,err error){
+	session:=self.session.Where("cate_owner_id=?",mid).Where("cate_type=?",categoryType).And("state=?",StateOk).OrderBy("list_order")
+	if pid>0{
+		session.And("parent_id=?",pid)
 	}
 	err=session.Find(&session)
 	return
