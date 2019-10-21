@@ -56,7 +56,7 @@ func (self *DefaultCategory) GetChild(categoryType CateType, withChildList bool,
 
 func recursiveSearchSubs(session *xorm.Session, cate *Category) (result []*Category, err error) {
 
-	err = session.Where("cate_owner_id=?", cate.CateOwnerId).And("parent_id=?", cate.ParentId).Where("cate_type=?", cate.CateType).And("state=?", cate.State).OrderBy("list_order").Find(&result)
+	err = session.Where("cate_owner_id=?", cate.CateOwnerId).And("parent_id=?", cate.Id).Where("cate_type=?", cate.CateType).And("state=?", cate.State).OrderBy("list_order").Find(&result)
 	if err != nil {
 		return
 	}
