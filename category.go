@@ -58,5 +58,4 @@ type Category struct {
 	Name        string      `json:"name" xorm:"varchar(200) default ''"`
 	Icon        string      `json:"icon" xorm:"varchar(500) default ''"`
 	Child       []*Category `json:"child" xorm:"-"`
-	HasChild    bool        `json:"has_child" xorm:"-"`
 }
