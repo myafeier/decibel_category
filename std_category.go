@@ -42,7 +42,7 @@ func (self *DefaultCategory)GetChild(categoryType CateType,mid,pid int64)(result
 	if pid>0{
 		session.And("parent_id=?",pid)
 	}
-	err=session.Find(&session)
+	err=session.Find(&result)
 	return
 }
 
