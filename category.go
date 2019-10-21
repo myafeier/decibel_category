@@ -18,7 +18,7 @@ type ICategory interface {
 	Delete(id int64) (err error)
 	Update(id int64, category *Category) (err error)
 	Get(category *Category) (has bool, err error)
-	GetChild(categoryType CateType, mid, pid int64) (result []*Category, err error)
+	GetChild(categoryType CateType, withChildList bool, mid, pid int64) (result []*Category, err error)
 }
 
 var stdCategory ICategory
@@ -44,8 +44,8 @@ func Delete(id int64) (err error) {
 func Update(id int64, category *Category) (err error) {
 	return stdCategory.Update(id, category)
 }
-func GetChild(categoryType CateType, mid, pid int64) (result []*Category, err error) {
-	return stdCategory.GetChild(categoryType, mid, pid)
+func GetChild(categoryType CateType, withChildList bool, mid, pid int64) (result []*Category, err error) {
+	return stdCategory.GetChild(categoryType, withChildList, mid, pid)
 }
 
 type Category struct {
