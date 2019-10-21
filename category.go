@@ -17,8 +17,8 @@ type ICategory interface {
 	Add(category *Category) (id int64, err error)
 	Delete(id int64) (err error)
 	Update(id int64, category *Category) (err error)
-	Get(category *Category)(has bool,err error)
-	GetChild(categoryType CateType, mid,pid int64) (result []*Category, err error)
+	Get(category *Category) (has bool, err error)
+	GetChild(categoryType CateType, mid, pid int64) (result []*Category, err error)
 }
 
 var stdCategory ICategory
@@ -44,8 +44,8 @@ func Delete(id int64) (err error) {
 func Update(id int64, category *Category) (err error) {
 	return stdCategory.Update(id, category)
 }
-func GetChild(categoryType CateType,mid, pid int64) (result []*Category, err error) {
-	return stdCategory.GetChild(categoryType,mid, pid)
+func GetChild(categoryType CateType, mid, pid int64) (result []*Category, err error) {
+	return stdCategory.GetChild(categoryType, mid, pid)
 }
 
 type Category struct {
@@ -58,4 +58,5 @@ type Category struct {
 	Name        string      `json:"name" xorm:"varchar(200) default ''"`
 	Icon        string      `json:"icon" xorm:"varchar(500) default ''"`
 	Child       []*Category `json:"child" xorm:"-"`
+	HasChild    bool        `json:"has_child" xorm:"-"`
 }
