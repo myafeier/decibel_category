@@ -19,14 +19,31 @@ func (self *DefaultCategory) Add(category *Category) (id int64, err error) {
 	//self.mutex.Lock()
 	//defer self.mutex.Unlock()
 	_, err = self.session.Insert(category)
+	if err != nil {
+		return
+	}
+	category.FullInfo,err=getFullParentInfo(self.session,category.Id)
+	if err != nil {
+		return
+	}
+	_,err=self.session.ID(category.Id).Cols("full_info").Update(category)
 	return
 }
 func (self *DefaultCategory) Delete(id int64) (err error) {
 	_, err = self.session.ID(id).Update(&Category{State: StateDeleted})
+
 	return
 }
 func (self *DefaultCategory) Update(id int64, category *Category) (err error) {
 	_, err = self.session.ID(id).AllCols().Update(category)
+	if err != nil {
+		return
+	}
+	category.FullInfo,err=getFullParentInfo(self.session,id)
+	if err != nil {
+		return
+	}
+	_,err=self.session.ID(id).Cols("full_info").Update(category)
 	return
 }
 func (self *DefaultCategory) Get(category *Category) (has bool, err error) {
@@ -45,7 +62,7 @@ func (self *DefaultCategory) GetChild(categoryType CateType, withChildList bool,
 	}
 	if withChildList {
 		for _, v := range result {
-			v.Child,err=recursiveSearchSubs(session,v)
+			v.Child, err = recursiveSearchSubs(session, v)
 			if err != nil {
 				return
 			}
@@ -70,4 +87,37 @@ func recursiveSearchSubs(session *xorm.Session, cate *Category) (result []*Categ
 	}
 	return
 
+}
+func getFullParentInfo(session *xorm.Session,id int64)(result []*BasicCategory,err error){
+	t,err:=recursiveSearchParent(session,&Category{Id:id})
+	if err!=nil{
+		return
+	}
+	if t!=nil||len(t)>0{
+		for _,v:=range t{
+			result=append(result,&BasicCategory{Id:v.Id,Name:v.Name})
+		}
+	}
+	return
+}
+
+func recursiveSearchParent(session *xorm.Session, cate *Category) (result []*Category, err error) {
+
+	has, err := session.ID(cate.Id).Where("state=?", StateOk).Get(cate)
+	if err != nil || !has {
+		return
+	}
+
+	if cate.ParentId > 0 {
+		var t []*Category
+		t, err = recursiveSearchParent(session, &Category{Id: cate.ParentId})
+		if err != nil || !has {
+			return
+		}
+		if t != nil && len(t) > 0 {
+			result = append(result, t...)
+		}
+	}
+	result = append(result, cate)
+	return
 }

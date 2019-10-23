@@ -49,13 +49,19 @@ func GetChild(categoryType CateType, withChildList bool, mid, pid int64) (result
 }
 
 type Category struct {
-	Id          int64       `json:"id"`
-	CateOwnerId int64       `json:"-" xorm:"default 0 index"` //
-	CateType    CateType    `json:"-" xorm:"tinyint(2) default 0 index"`
-	State       State       `json:"state" xorm:"tinyint(2) default 1 index"`
-	ListOrder   int         `json:"list_order" xorm:"default 10000 index"` //排序，越小越靠前，默认10000
-	ParentId    int64       `json:"parent_id" xorm:"default 0 index"`
-	Name        string      `json:"name" xorm:"varchar(200) default ''"`
-	Icon        string      `json:"icon" xorm:"varchar(500) default ''"`
-	Child       []*Category `json:"child" xorm:"-"`
+	Id          int64            `json:"id"`
+	CateOwnerId int64            `json:"-" xorm:"default 0 index"` //
+	CateType    CateType         `json:"-" xorm:"tinyint(2) default 0 index"`
+	State       State            `json:"state" xorm:"tinyint(2) default 1 index"`
+	ListOrder   int              `json:"list_order" xorm:"default 10000 index"` //排序，越小越靠前，默认10000
+	ParentId    int64            `json:"parent_id" xorm:"default 0 index"`
+	FullInfo    []*BasicCategory `json:"full_info" xorm:"tinyblob"` //完整路径
+	Name        string           `json:"name" xorm:"varchar(200) default ''"`
+	Icon        string           `json:"icon" xorm:"varchar(500) default ''"`
+	Child       []*Category      `json:"child" xorm:"-"`
+}
+
+type BasicCategory struct {
+	Id   int64  `json:"id"`
+	Name string `json:"name"`
 }
