@@ -1,32 +1,136 @@
 package category
 
 import (
-	"github.com/go-xorm/xorm"
+	"fmt"
+	"sync"
+
+	"github.com/prometheus/common/log"
+	"xorm.io/xorm"
 )
+
+var Daemon *CategoryService
 
 type CategoryService struct {
 	session *xorm.Session
+	Cache   map[int64]*CategoryEntity
+	mutex   sync.RWMutex
+}
+
+func InitDaemon(s *xorm.Session) {
+	if Daemon == nil {
+		Daemon = &CategoryService{
+			session: s,
+			Cache:   make(map[int64]*CategoryEntity),
+			mutex:   sync.RWMutex{},
+		}
+		if err := Daemon.initCache(); err != nil {
+			panic(err)
+		}
+	}
+
+}
+func (s *CategoryService) initCache() error {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	var cates []*CategoryEntity
+	if err := s.session.Where("state=?", StateOk).Find(&cates); err != nil {
+		log.Error(err.Error())
+		return err
+	}
+	for _, v := range cates {
+		s.Cache[v.Id] = v
+	}
+	return nil
 }
 
 func NewCategoryService(s *xorm.Session) *CategoryService {
 	return &CategoryService{session: s}
 }
 
-func (self *CategoryService) Add(category *CategoryEntity) (id int64, err error) {
+func (self *CategoryService) GetFirstLevelCateId(cateId int64) (parentId int64, userErr error, err error) {
+	cate := new(CategoryEntity)
+	has, err := self.session.ID(cateId).Get(cate)
+	if err != nil {
+		return
+	}
+	if !has {
+		userErr = fmt.Errorf("id :%d not exist", cateId)
+		return
+	}
+	if cate.Pid > 0 {
+		parentId, userErr, err = self.GetFirstLevelCateId(cate.Pid)
+	} else {
+		parentId = cateId
+	}
+	return
+
+}
+func (self *CategoryService) Add(form *PostForm) (userErr error, err error) {
+	if form.Name == "" {
+		userErr = fmt.Errorf("栏目名称不可为空")
+		return
+	}
+	category := new(CategoryEntity)
+	category.Icon = form.Icon
+	category.Pid = form.Pid
+	category.Name = form.Name
+	category.State = StateOk
+	category.ListOrder = form.ListOrder
 	_, err = self.session.Insert(category)
+	if err != nil {
+		log.Error(err.Error())
+		return
+	}
+	Daemon.initCache()
 	return
 }
-func (self *CategoryService) Delete(id int64) (err error) {
+func (self *CategoryService) Delete(id int64) (userErr error, err error) {
+	if id < 1 {
+		userErr = fmt.Errorf("栏目id不可为0")
+		return
+
+	}
 	_, err = self.session.ID(id).Update(&CategoryEntity{State: StateDeleted})
+	if err != nil {
+		log.Error(err.Error())
+		return
+	}
+
+	Daemon.initCache()
 	return
 }
-func (self *CategoryService) Update(id int64, category *CategoryEntity) (err error) {
+func (self *CategoryService) Update(id int64, category *CategoryEntity) (userErr error, err error) {
+	if id < 1 {
+		userErr = fmt.Errorf("栏目id不可为0")
+		return
+	}
 	_, err = self.session.ID(id).Update(category)
+	if err != nil {
+		log.Error(err.Error())
+		return
+	}
+	Daemon.initCache()
 	return
 }
 
 func (self *CategoryService) GetChild(pid int64) (result []*CategoryEntity, err error) {
-	session := self.session.Where("parent_id=?", pid).And("state=?", StateOk).OrderBy("list_order desc")
+	session := self.session.Where("pid=?", pid).And("state=?", StateOk).OrderBy("list_order desc")
+	err = session.Find(&result)
+	if err != nil {
+		return
+	}
+	return
+}
+func (self *CategoryService) GetAll() (result []*CategoryEntity, err error) {
+	session := self.session.And("state=?", StateOk).OrderBy("list_order desc")
+	err = session.Find(&result)
+	if err != nil {
+		return
+	}
+	return
+}
+func (self *CategoryService) GetListByIds(ids []int64) (result []*CategoryEntity, err error) {
+	session := self.session.And("state=?", StateOk).In("id", ids).OrderBy("list_order desc")
 	err = session.Find(&result)
 	if err != nil {
 		return
